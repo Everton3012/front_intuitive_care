@@ -39,6 +39,7 @@ o escopo do Teste 4 do desafio técnico.
   - Média geral
   - Top 5 operadoras por despesa
   - Top 5 UFs por despesa
+  - Cache local no frontend com TTL de 30 dias, evitando chamadas repetidas à API
 
 ### 📄 Detalhes da Operadora
 - Página de detalhes por CNPJ
@@ -54,21 +55,27 @@ o escopo do Teste 4 do desafio técnico.
 ## Estrutura do Projeto
 
 ```
-frontend/
+frontend_intuitive_care/
 │
 ├── src/
 │ ├── api/
-│ │ └── intuitivecare.js
+│ │ └── http.js
 │ │
 │ ├── components/
 │ │ ├── OperadorasTable.vue
 │ │ ├── Pagination.vue
-│ │ └── Loader.vue
+│ │ └── SearchBar.vue
 │ │
 │ ├── pages/
-│ │ ├── Operadoras.vue
+│ │ ├── Estatisticas.vue
 │ │ ├── OperadoraDetalhe.vue
-│ │ └── Estatisticas.vue
+│ │ └── Operadoras.vue 
+│ │
+│ ├── router/
+│ │ └── index.ts 
+│ │
+│ ├── utils/
+│ │ └── cache.ts 
 │ │
 │ ├── App.vue
 │ └── main.js
@@ -128,7 +135,11 @@ A aplicação ficará disponível em:
 
 - Vue 3 + Vite: simplicidade, rapidez e baixo overhead
 
+- TypeScript: maior segurança e legibilidade
+
 - Paginação via API: evita carregar grandes volumes no frontend
+
+- Cache controlado no frontend: dados estáveis com menos requisições
 
 - Tratamento explícito de dados ausentes: melhora UX para operadoras canceladas
 
@@ -143,5 +154,3 @@ A aplicação ficará disponível em:
 - Implementar testes de componentes
 
 - Criar build Docker do frontend
-
-- Cache simples para estatísticas

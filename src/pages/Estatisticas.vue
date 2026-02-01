@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { http } from "../api/http";
+import { getCache, setCache, CACHE_TTL_30_DAYS } from "../utils/cache";
 
 type Estatisticas = {
   total_despesas: number;
@@ -16,9 +17,20 @@ const error = ref<string | null>(null);
 async function fetchStats() {
   loading.value = true;
   error.value = null;
+
+  const key = "ic:estatisticas";
+
+  const cached = getCache<Estatisticas>(key, CACHE_TTL_30_DAYS);
+  if (cached) {
+    data.value = cached;
+    loading.value = false;
+    return;
+  }
+
   try {
-    const resp = await http.get("/api/estatisticas");
+    const resp = await http.get<Estatisticas>("/api/estatisticas");
     data.value = resp.data;
+    setCache(key, resp.data);
   } catch (e: any) {
     error.value = e?.response?.data?.detail || "Erro ao carregar estatísticas";
   } finally {

@@ -5,6 +5,8 @@ import { http } from "../api/http";
 import SearchBar from "../components/SearchBar.vue";
 import Pagination from "../components/Pagination.vue";
 import OperadorasTable from "../components/OperadorasTable.vue";
+import { getCache, setCache, CACHE_TTL_30_DAYS } from "../utils/cache";
+
 
 type Operadora = {
   cnpj: string;
@@ -25,21 +27,48 @@ const rows = ref<Operadora[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 
+type OperadorasResponse = {
+  data: Operadora[];
+  total: number;
+  page: number;
+  limit: number;
+};
+
+function makeCacheKey() {
+  const query = (q.value || "").trim().toLowerCase();
+  return `ic:operadoras:p=${page.value}:l=${limit.value}:q=${encodeURIComponent(query)}`;
+}
+
 async function fetchOperadoras() {
   loading.value = true;
   error.value = null;
+
+  const cacheKey = makeCacheKey();
+  const cached = getCache<OperadorasResponse>(cacheKey, CACHE_TTL_30_DAYS);
+
+  if (cached) {
+    rows.value = cached.data;
+    total.value = cached.total;
+    loading.value = false;
+    return;
+  }
+
   try {
-    const resp = await http.get("/api/operadoras", {
+    const resp = await http.get<OperadorasResponse>("/api/operadoras", {
       params: { page: page.value, limit: limit.value, q: q.value || undefined },
     });
+
     rows.value = resp.data.data;
     total.value = resp.data.total;
+
+    setCache(cacheKey, resp.data);
   } catch (e: any) {
     error.value = e?.response?.data?.detail || "Erro ao carregar operadoras";
   } finally {
     loading.value = false;
   }
 }
+
 
 function buscar() {
   page.value = 1;
