@@ -45,3 +45,24 @@ export function clearCacheByPrefix(prefix: string): void {
         }
     });
 }
+
+// src/utils/cache.ts
+
+export function clearCachePrefix(prefix: string) {
+    const keysToRemove: string[] = [];
+  
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(prefix)) {
+        keysToRemove.push(key);
+      }
+    }
+  
+    for (const k of keysToRemove) localStorage.removeItem(k);
+  }
+  
+  // atalho só pro projeto
+  export function clearIcCache() {
+    clearCachePrefix("ic:");
+  }
+  

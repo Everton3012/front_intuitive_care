@@ -74,6 +74,11 @@ frontend_intuitive_care/
 │ ├── router/
 │ │ └── index.ts 
 │ │
+│ ├── services/
+│ │ ├── admin.service.ts
+│ │ ├── estatisticas.service.ts
+│ │ └── operadoras.service.ts
+│ │
 │ ├── utils/
 │ │ └── cache.ts 
 │ │
@@ -84,7 +89,6 @@ frontend_intuitive_care/
 ├── package.json
 └── README.md
 ```
-
 
 ---
 
@@ -129,6 +133,8 @@ A aplicação ficará disponível em:
 
 - GET /health
 
+- POST /api/admin/atualizar
+
 - A paginação e filtros são feitos diretamente via parâmetros da API, mantendo o frontend simples e desacoplado da lógica de dados.
 
 ## Decisões Técnicas
@@ -144,6 +150,8 @@ A aplicação ficará disponível em:
 - Tratamento explícito de dados ausentes: melhora UX para operadoras canceladas
 
 - Componentização leve: apenas onde agrega clareza (tabela, paginação)
+
+- Botão atualizar dados que executa a pipeline no backend prepara o banco caso esteja vazio e retorna os dados
 
 ## Limitações e Melhorias Futuras
 

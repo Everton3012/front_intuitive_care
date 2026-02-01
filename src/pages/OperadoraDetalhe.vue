@@ -1,32 +1,15 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { http } from "../api/http";
 import { useRoute, useRouter } from "vue-router";
-import { getCache, setCache, CACHE_TTL_30_DAYS } from "../utils/cache";
-
+import {
+  buscarOperadora,
+  buscarDespesas,
+  type Operadora,
+  type Despesa,
+} from "../services/operadoras.service";
 
 const route = useRoute();
 const router = useRouter();
-
-type Operadora = {
-  cnpj: string;
-  registro_ans: string | null;
-  razao_social: string;
-  modalidade: string | null;
-  uf: string | null;
-  situacao: string | null;
-};
-
-type Despesa = {
-  ano: number;
-  trimestre: number;
-  vl_saldo_final: number;
-};
-
-type DespesasResponse = {
-  cnpj: string;
-  despesas: Despesa[];
-};
 
 const cnpj = String(route.params.cnpj);
 
@@ -38,34 +21,13 @@ const error = ref<string | null>(null);
 async function fetchAll() {
   loading.value = true;
   error.value = null;
-
-  const cnpjDigits = String(cnpj).replace(/\D/g, "");
-  const keyOp = `ic:operadora:${cnpjDigits}`;
-  const keyDesp = `ic:operadora_despesas:${cnpjDigits}`;
-
-  const cachedOp = getCache<Operadora>(keyOp, CACHE_TTL_30_DAYS);
-  const cachedDesp = getCache<DespesasResponse>(keyDesp, CACHE_TTL_30_DAYS);
-
-  if (cachedOp && cachedDesp) {
-    operadora.value = cachedOp;
-    despesas.value = cachedDesp.despesas || [];
-    loading.value = false;
-    return;
-  }
-
   try {
-    const [opResp, despResp] = await Promise.all([
-      cachedOp ? Promise.resolve({ data: cachedOp }) : http.get<Operadora>(`/api/operadoras/${cnpjDigits}`),
-      cachedDesp
-        ? Promise.resolve({ data: cachedDesp })
-        : http.get<DespesasResponse>(`/api/operadoras/${cnpjDigits}/despesas`),
+    const [op, desp] = await Promise.all([
+      buscarOperadora(cnpj),
+      buscarDespesas(cnpj),
     ]);
-
-    operadora.value = opResp.data;
-    despesas.value = despResp.data.despesas || [];
-
-    setCache(keyOp, opResp.data);
-    setCache(keyDesp, despResp.data);
+    operadora.value = op;
+    despesas.value = desp;
   } catch (e: any) {
     error.value = e?.response?.data?.detail || "Erro ao carregar detalhe";
   } finally {
