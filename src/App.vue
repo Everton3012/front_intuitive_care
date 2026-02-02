@@ -12,7 +12,7 @@
           Estatísticas
         </RouterLink>
 
-        <button class="update-btn" @click="showConfirm = true" :disabled="updating">
+        <button class="update-btn" @click="onUpdateClick" :disabled="updating">
           🔄 {{ updating ? "Atualizando..." : "Atualizar dados" }}
         </button>
       </nav>
@@ -21,6 +21,18 @@
     <main class="content">
       <RouterView />
     </main>
+
+    <!-- Modal de função desabilitada (produção) -->
+    <ConfirmModal
+      :show="showDisabled"
+      title="Função indisponível"
+      message="A atualização de dados está temporariamente desabilitada em produção devido a limitações do servidor. Para atualizar os dados, execute o pipeline localmente."
+      confirm-text="Entendi"
+      cancel-text=""
+      type="info"
+      @confirm="showDisabled = false"
+      @cancel="showDisabled = false"
+    />
 
     <!-- Modal de confirmação -->
     <ConfirmModal
@@ -50,7 +62,7 @@
     <!-- Modal de erro -->
     <ConfirmModal
       :show="showError"
-      :title="'Erro na atualização'"
+      title="Erro na atualização"
       :message="errorMessage"
       confirm-text="Fechar"
       cancel-text=""
@@ -68,12 +80,23 @@ import { http } from "./api/http";
 import { clearIcCache } from "./utils/cache";
 import ConfirmModal from "./components/ConfirmModal.vue";
 
+const isProduction = import.meta.env.VITE_ENV === "production";
+
 const updating = ref(false);
+const showDisabled = ref(false);
 const showConfirm = ref(false);
 const showSuccess = ref(false);
 const showError = ref(false);
 const errorMessage = ref("");
 const router = useRouter();
+
+function onUpdateClick() {
+  if (isProduction) {
+    showDisabled.value = true;
+  } else {
+    showConfirm.value = true;
+  }
+}
 
 async function atualizarDados() {
   if (updating.value) return;
