@@ -7,6 +7,7 @@ import {
   type Operadora,
   type Despesa,
 } from "../services/operadoras.service";
+import { formatCnpj, formatMoney } from "../utils/formatters";
 
 const route = useRoute();
 const router = useRouter();
@@ -35,37 +36,38 @@ async function fetchAll() {
   }
 }
 
-function formatMoney(v: number) {
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
-}
-
 onMounted(fetchAll);
 </script>
 
 <template>
   <div>
-    <button @click="router.back()" style="margin-bottom: 12px;">← Voltar</button>
+    <button @click="router.back()" class="btn-voltar">← Voltar</button>
 
     <h1>Detalhe da Operadora</h1>
 
-    <div v-if="error" style="color:red; margin: 10px 0;">{{ error }}</div>
+    <div v-if="error" class="error">{{ error }}</div>
     <div v-if="loading">Carregando...</div>
 
-    <div v-if="operadora && !loading" style="border:1px solid #ddd; padding: 14px; border-radius: 10px;">
-      <div><b>CNPJ:</b> {{ operadora.cnpj }}</div>
+    <div v-if="operadora && !loading" class="card">
+      <div><b>CNPJ:</b> {{ formatCnpj(operadora.cnpj) }}</div>
       <div><b>Razão Social:</b> {{ operadora.razao_social }}</div>
       <div><b>UF:</b> {{ operadora.uf || "-" }}</div>
       <div><b>Modalidade:</b> {{ operadora.modalidade || "-" }}</div>
-      <div><b>Situação:</b> {{ operadora.situacao || "-" }}</div>
+      <div>
+        <b>Situação:</b>
+        <span :class="operadora.situacao === 'ATIVA' ? 'ativa' : 'cancelada'">
+          {{ operadora.situacao || "-" }}
+        </span>
+      </div>
     </div>
 
     <h2>Despesas (últimos 3 trimestres)</h2>
 
-    <div v-if="despesas.length === 0" style="margin-top: 8px; color: #666;">
+    <div v-if="despesas.length === 0" class="sem-dados">
       Sem despesas nos últimos 3 trimestres (provavelmente operadora cancelada).
     </div>
 
-    <table v-else border="1" cellspacing="0" cellpadding="8" width="100%">
+    <table v-else class="table">
       <thead>
         <tr>
           <th>Ano</th>
@@ -76,10 +78,55 @@ onMounted(fetchAll);
       <tbody>
         <tr v-for="d in despesas" :key="`${d.ano}-${d.trimestre}`">
           <td>{{ d.ano }}</td>
-          <td>{{ d.trimestre }}</td>
+          <td>{{ d.trimestre }}º</td>
           <td>{{ formatMoney(d.vl_saldo_final) }}</td>
         </tr>
       </tbody>
     </table>
   </div>
 </template>
+
+<style scoped>
+.btn-voltar {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+.btn-voltar:hover {
+  background: #f5f5f5;
+}
+.card {
+  border: 1px solid #ddd;
+  padding: 16px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.error {
+  color: red;
+  margin: 10px 0;
+}
+.sem-dados {
+  color: #666;
+  font-style: italic;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+.table th, .table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+.table th {
+  background: #f5f5f5;
+}
+.ativa { color: #2e7d32; font-weight: 600; }
+.cancelada { color: #c62828; font-weight: 600; }
+</style>
